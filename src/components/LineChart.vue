@@ -1,15 +1,8 @@
-<template>
-  <div class="chart" ref="chart" style="height: 300px;"></div>
-</template>
-
 <script>
-import * as am4core from "@amcharts/amcharts4/core";
-import * as am4charts from "@amcharts/amcharts4/charts";
-import am4themes_animated from "@amcharts/amcharts4/themes/animated";
-
-am4core.useTheme(am4themes_animated);
+import { Line } from "vue-chartjs";
 
 export default {
+  extends: Line,
   props: {
     data: {
       type: Array,
@@ -29,64 +22,114 @@ export default {
         var d = [];
 
         this.data.forEach(value => {
-          d.push({
-            date: value.date,
-            value: value.score
-            /* data: {
-              score: value.score,
-              averageTimeToKill: value.averageTimeToKill,
-              horziontalSensitivity: value.horziontalSensitivity,
-              verticalSensitivity: value.verticalSensitivity,
-              sensitivityScale: value.sensitivityScale,
-              accuracy: value.accuuracy
-            } */
-          });
+          d.push(value);
         });
 
-        console.log(
-          this.data.reduce(function(prev, current) {
-            return Number(prev.score) > Number(current.score) ? prev : current;
-          })
-        );
+        var unique = [...new Set([...this.data.map(x => x.date)])];
+
+        unique.forEach(date => {
+          var filtered = this.data.filter(x => x.date == date);
+
+          if (filtered.length > 0) {
+            var highest = filtered.reduce(function(prev, current) {
+              return Number(prev.score) > Number(current.score)
+                ? Number(prev.score)
+                : Number(current.score);
+            });
+
+            var average =
+              filtered.reduce((a, b) => a + Number(b.score), 0) /
+              filtered.length;
+
+            var lowest = filtered.reduce(function(prev, current) {
+              return Number(prev.score) < Number(current.score)
+                ? Number(prev.score)
+                : Number(current.score);
+            });
+
+            console.log(`${date}: Highest Score: ` + highest),
+              console.log(`${date}: Average Score: ` + average);
+            console.log(`${date}: Lowest Score: ` + lowest);
+          }
+        });
+
         //highest score that day
 
         //average score that day
 
         //lowest score that day
-        this.chart.data = d;
+        this.renderChart(
+          {
+            labels: ["2020-07-27"],
+            datasets: [
+              {
+                label: "Highest Score",
+                backgroundColor: [
+                  "rgba(255, 99, 132, 0.2)",
+                  "rgba(54, 162, 235, 0.2)",
+                  "rgba(255, 206, 86, 0.2)",
+                  "rgba(75, 192, 192, 0.2)",
+                  "rgba(153, 102, 255, 0.2)",
+                  "rgba(255, 159, 64, 0.2)"
+                ],
+                borderColor: [
+                  "rgba(255,99,132,1)",
+
+                  "rgba(255, 206, 86, 1)",
+                  "rgba(75, 192, 192, 1)",
+
+                  "rgba(255, 159, 64, 1)"
+                ],
+                data: [530.631531]
+              },
+              {
+                label: "Average Score",
+                backgroundColor: [
+                  "rgba(255, 99, 132, 0.2)",
+                  "rgba(54, 162, 235, 0.2)",
+                  "rgba(255, 206, 86, 0.2)",
+                  "rgba(75, 192, 192, 0.2)",
+                  "rgba(153, 102, 255, 0.2)",
+                  "rgba(255, 159, 64, 0.2)"
+                ],
+                borderColor: [
+                  "rgba(255,99,132,1)",
+                  "rgba(54, 162, 235, 1)",
+                  "rgba(255, 206, 86, 1)"
+                ],
+                data: [521.551056]
+              },
+              {
+                label: "Lowest Score",
+                backgroundColor: [
+                  "rgba(153, 102, 255, 0.2)",
+                  "rgba(255, 159, 64, 0.2)"
+                ],
+                borderColor: [
+                  "rgba(255,99,132,1)",
+                  "rgba(54, 162, 235, 1)",
+                  "rgba(255, 206, 86, 1)",
+                  "rgba(75, 192, 192, 1)",
+                  "rgba(153, 102, 255, 1)",
+                  "rgba(255, 159, 64, 1)"
+                ],
+                data: [512.470581]
+              }
+            ]
+          },
+          {
+            scales: {
+              yAxes: [
+                {
+                  ticks: {
+                    beginAtZero: true
+                  }
+                }
+              ]
+            }
+          }
+        );
       }
-    }
-  },
-  mounted() {
-    let chart = am4core.create(this.$refs.chart, am4charts.XYChart);
-
-    // Create axees
-    var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
-    dateAxis.renderer.minGridDistance = 60;
-
-    dateAxis.renderer.labels.template.fill = am4core.color("#fffff");
-
-    var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-    valueAxis.renderer.labels.template.fill = am4core.color("#fffff");
-
-    // Create series
-    var series = chart.series.push(new am4charts.LineSeries());
-    series.dataFields.valueY = "value";
-    series.dataFields.dateX = "date";
-    series.tooltipText = "{value}";
-
-    series.tooltip.pointerOrientation = "vertical";
-
-    chart.cursor = new am4charts.XYCursor();
-    chart.cursor.snapToSeries = series;
-    chart.cursor.xAxis = dateAxis;
-
-    this.chart = chart;
-  },
-
-  beforeDestroy() {
-    if (this.chart) {
-      this.chart.dispose();
     }
   }
 };

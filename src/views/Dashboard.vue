@@ -16,7 +16,7 @@
       </v-col>
 
       <v-col cols="12" style="color: white !important;">
-        <line-chart :data="data" :days="Number(days)"></line-chart>
+        <line-chart :data="!loading ? data : []" :days="Number(days)"></line-chart>
       </v-col>
     </v-row>
   </v-container>
@@ -33,6 +33,9 @@ export default {
   },
   data() {
     return {
+      loading: true,
+      filesToLoad: 0,
+      filesLoaded: 0,
       scenario: "",
       files: [],
       days: 3,
@@ -48,13 +51,21 @@ export default {
     },
     $filteredFiles() {
       console.log(`Getting Records from Past ${this.days} days`);
+
+      this.loading = true;
+
       this.data = [];
-      return this.files.filter(
+
+      var files = this.files.filter(
         x =>
           x.scenario == this.scenario &&
           Math.abs(x.date.diff(this.moment().startOf("day"), "days")) <
             Number(this.days)
       );
+
+      this.filesToLoad = files.length - 1;
+
+      return files;
     },
     $scenarios() {
       var scenarios = [];
@@ -77,7 +88,7 @@ export default {
           ipcRenderer.send("get-kovaak-file", {
             path: this.$config.path,
             name: file.file,
-            date: file.datetime.toDate()
+            date: this.days == 1 ? file.time : file.date.format("YYYY-MM-DD")
           });
         });
       }
@@ -102,6 +113,14 @@ export default {
           sensitivityScale: data[3]["Sens Scale"],
           accuracy: (data[2].Hits / data[2].Shots) * 100
         });
+        console.log(
+          `Loaded ${this.filesLoaded}/${this.filesToLoad} files for ${this.scenario}`
+        );
+        if (this.filesLoaded < this.filesToLoad) {
+          this.filesLoaded++;
+        } else {
+          this.loading = false;
+        }
       });
       ipcRenderer.on("got-kovaak-data", (event, data) => {
         console.log(data[0]);
