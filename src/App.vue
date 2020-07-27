@@ -1,32 +1,92 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view />
-  </div>
+  <v-app>
+    <v-app-bar color="transparent" flat app dense>
+      <v-toolbar-title class="pl-3">{{$route.name}}</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-toolbar-items>
+        <v-btn icon @click="$router.push('/')" v-if="$route.path != '/configuration'">
+          <v-icon>settings</v-icon>
+        </v-btn>
+        <v-btn icon @click="minimize">
+          <v-icon>minimize</v-icon>
+        </v-btn>
+        <v-btn icon @click="quit">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-toolbar-items>
+    </v-app-bar>
+
+    <v-main>
+      <router-view :key="$route.fullPath"></router-view>
+    </v-main>
+  </v-app>
 </template>
 
+<script>
+const { ipcRenderer } = require("electron");
+
+export default {
+  name: "App",
+  mounted() {
+    ipcRenderer.send("load-config");
+
+    this.handleEventListeners();
+  },
+  computed: {
+    $config() {
+      return this.$store.state.configuration.data;
+    }
+  },
+  watch: {
+    $config() {
+      console.log(this.$store.state.configuration.data);
+    }
+  },
+  methods: {
+    quit() {
+      ipcRenderer.send("app:quit");
+    },
+    minimize() {
+      ipcRenderer.send("app:minimize");
+    },
+    handleEventListeners() {
+      ipcRenderer.on("loaded-config", (event, config) => {
+        if (config) {
+          this.$store.commit("setConfiguration", config);
+
+          this.$vuetify.theme.dark = this.$config.theme;
+
+          this.$router.push({
+            path: "/dashboard"
+          });
+        } else {
+          if (this.$router.path != "/") {
+            this.$router.push({
+              path: "/"
+            });
+          }
+        }
+      });
+    }
+  }
+};
+</script>
+
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
+html {
+  overflow: scroll;
+  overflow-x: hidden;
 }
-
-#nav {
-  padding: 30px;
+::-webkit-scrollbar {
+  width: 0px; /* Remove scrollbar space */
+  background: transparent; /* Optional: just make scrollbar invisible */
 }
-
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
+/* Optional: show position indicator in red */
+::-webkit-scrollbar-thumb {
+  background: #ff0000;
 }
-
-#nav a.router-link-exact-active {
-  color: #42b983;
+.v-toolbar__content {
+  padding: 0px !important;
+  height: 48px;
 }
 </style>

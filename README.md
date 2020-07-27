@@ -1,4 +1,4 @@
-# koovak-progress-project
+# kovaak-progress-project
 
 ## Project setup
 ```

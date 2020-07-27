@@ -1,0 +1,14 @@
+
+
+Import/Export
+
+Convert CSV to JSON
+
+Get All Files
+
+{
+    scenario: "1wall 6targets small",
+    date: moment('2020.07.25 15.25.56', 'DD.MM.YYYY HH.mm.ss'),
+    file: "1wall 6targets small - Challenge - 2020.07.25-15.25.56 Stats.csv"
+}
+
