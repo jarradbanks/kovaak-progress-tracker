@@ -6,6 +6,7 @@ import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 import fs from "fs";
 import path, { parse } from "path";
+var chokidar = require("chokidar");
 const readline = require('readline');
 const isDevelopment = process.env.NODE_ENV !== "production";
 
@@ -25,7 +26,7 @@ function createWindow() {
   // Create the browser window.
   win = new BrowserWindow({
     width: 1000,
-    height: 500,
+    height: 575,
     autoHideMenuBar: true,
     resizable: false,
     webPreferences: {
@@ -66,6 +67,8 @@ ipcMain.on('open-path-dialog', (event, arg) => {
   });
 })
 
+
+
 ipcMain.on('get-kovaak-file', (event, data) => {
 
 
@@ -73,7 +76,6 @@ ipcMain.on('get-kovaak-file', (event, data) => {
   var lineReader = require('readline').createInterface({
     input: require('fs').createReadStream(path.join(data.path, data.name))
   });
-
 
   var parse1 = false, parse2 = false, parse3 = false;
 
@@ -170,6 +172,7 @@ ipcMain.on('get-kovaak-file', (event, data) => {
 
   lineReader.on('close', () => {
     event.sender.send('got-kovaak-file', {
+      name: data.name,
       date: data.date,
       1: parse1Arr, 2: parse2Obj, 3: parse3Obj
     });
@@ -218,6 +221,40 @@ ipcMain.on('get-kovaak-data', (event, p) => {
 
 })
 
+ipcMain.on('chokidar-watch', (event, config) => {
+
+  const watcher = chokidar.watch(".", { persistent: true, cwd: config.path });
+
+  watcher
+    .on('add', path => {
+      /*   console.log(`Found: ${path}`); */
+
+      var object = {};
+
+      var data = path
+        .split(" - Challenge - ")
+        .map(stat => (stat = stat.trim().replace(" Stats", "").replace(".csv", "")));
+
+      if (data.length == 2) {
+        var datetime = data[1].split("-");
+        if (datetime.length == 2) {
+          object = {
+            scenario: data[0],
+            date: datetime[0].split('.').join('-'),
+            time: datetime[1].split('.').join(':'),
+            fileName: path
+          }
+        }
+      }
+
+      event.sender.send("chokidar-add", object);
+    }).on('unlink', path => {
+      event.sender.send("chokidar-remove", path);
+    }).on('ready', () => {
+      event.sender.send("chokidar-ready");
+    });
+
+});
 ///
 /// Save configuration 
 ///
@@ -226,7 +263,7 @@ ipcMain.on('save-config', (event, config) => {
   var appData = app.getPath("userData");
 
   //save config
-  fs.writeFileSync(path.join(appData, "config.json"), JSON.stringify(config));
+  fs.writeFileSync(path.join(app.getPath("userData"), "config.json"), JSON.stringify(config));
 
   //return config
   event.reply('saved-config', config);

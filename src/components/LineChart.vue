@@ -19,105 +19,76 @@ export default {
       immediate: true,
       deep: true,
       handler() {
-        var d = [];
+        var highestScores = [],
+          averageScores = [],
+          lowestScores = [];
 
-        this.data.forEach(value => {
-          d.push(value);
-        });
+        var dates = [...new Set([...this.data.map(x => x.date)])];
 
-        var unique = [...new Set([...this.data.map(x => x.date)])];
-
-        unique.forEach(date => {
+        dates.forEach(date => {
           var filtered = this.data.filter(x => x.date == date);
 
           if (filtered.length > 0) {
-            var highest = filtered.reduce(function(prev, current) {
-              return Number(prev.score) > Number(current.score)
-                ? Number(prev.score)
-                : Number(current.score);
-            });
+            var average = 0;
+            if (filtered.length > 3) {
+              average =
+                filtered.reduce((a, b) => a + Number(b.score), 0) /
+                filtered.length;
+            } else {
+              average = filtered[0].score;
+            }
 
-            var average =
-              filtered.reduce((a, b) => a + Number(b.score), 0) /
-              filtered.length;
+            var scores = filtered.map(x => Number(x.score));
 
-            var lowest = filtered.reduce(function(prev, current) {
-              return Number(prev.score) < Number(current.score)
-                ? Number(prev.score)
-                : Number(current.score);
-            });
+            var highest = Math.max(...scores);
 
-            console.log(`${date}: Highest Score: ` + highest),
-              console.log(`${date}: Average Score: ` + average);
-            console.log(`${date}: Lowest Score: ` + lowest);
+            var lowest = Math.min(...scores);
+
+            highestScores.push(highest);
+
+            averageScores.push(average);
+
+            lowestScores.push(lowest);
           }
         });
 
-        //highest score that day
-
-        //average score that day
-
-        //lowest score that day
         this.renderChart(
           {
-            labels: ["2020-07-27"],
-            datasets: [
-              {
-                label: "Highest Score",
-                backgroundColor: [
-                  "rgba(255, 99, 132, 0.2)",
-                  "rgba(54, 162, 235, 0.2)",
-                  "rgba(255, 206, 86, 0.2)",
-                  "rgba(75, 192, 192, 0.2)",
-                  "rgba(153, 102, 255, 0.2)",
-                  "rgba(255, 159, 64, 0.2)"
-                ],
-                borderColor: [
-                  "rgba(255,99,132,1)",
-
-                  "rgba(255, 206, 86, 1)",
-                  "rgba(75, 192, 192, 1)",
-
-                  "rgba(255, 159, 64, 1)"
-                ],
-                data: [530.631531]
-              },
-              {
-                label: "Average Score",
-                backgroundColor: [
-                  "rgba(255, 99, 132, 0.2)",
-                  "rgba(54, 162, 235, 0.2)",
-                  "rgba(255, 206, 86, 0.2)",
-                  "rgba(75, 192, 192, 0.2)",
-                  "rgba(153, 102, 255, 0.2)",
-                  "rgba(255, 159, 64, 0.2)"
-                ],
-                borderColor: [
-                  "rgba(255,99,132,1)",
-                  "rgba(54, 162, 235, 1)",
-                  "rgba(255, 206, 86, 1)"
-                ],
-                data: [521.551056]
-              },
-              {
-                label: "Lowest Score",
-                backgroundColor: [
-                  "rgba(153, 102, 255, 0.2)",
-                  "rgba(255, 159, 64, 0.2)"
-                ],
-                borderColor: [
-                  "rgba(255,99,132,1)",
-                  "rgba(54, 162, 235, 1)",
-                  "rgba(255, 206, 86, 1)",
-                  "rgba(75, 192, 192, 1)",
-                  "rgba(153, 102, 255, 1)",
-                  "rgba(255, 159, 64, 1)"
-                ],
-                data: [512.470581]
-              }
-            ]
+            labels: dates,
+            datasets:
+              this.days == 1
+                ? [
+                    {
+                      label: "Score",
+                      backgroundColor: ["rgba(250, 190, 88, 0.25)"],
+                      borderColor: ["rgba(245, 171, 53, 1)"],
+                      data: averageScores
+                    }
+                  ]
+                : [
+                    {
+                      label: "Highest Score",
+                      backgroundColor: ["rgba(250, 190, 88, 0.25)"],
+                      borderColor: ["rgba(245, 171, 53, 1)"],
+                      data: highestScores
+                    },
+                    {
+                      label: "Average Score",
+                      backgroundColor: ["rgba(30, 130, 76, 0.25)"],
+                      borderColor: ["rgba(38, 166, 91, 1)"],
+                      data: averageScores
+                    },
+                    {
+                      label: "Lowest Score",
+                      backgroundColor: ["rgba(246, 71, 71, 0.25)"],
+                      borderColor: ["rgba(150, 40, 27, 1)"],
+                      data: lowestScores
+                    }
+                  ]
           },
           {
+            responsive: true,
+            maintainAspectRatio: false,
             scales: {
               yAxes: [
                 {

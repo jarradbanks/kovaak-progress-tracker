@@ -19,6 +19,7 @@
         <line-chart :data="!loading ? data : []" :days="Number(days)"></line-chart>
       </v-col>
     </v-row>
+    {{filesLoaded + 1}} / {{filesToLoad + 1}}
   </v-container>
 </template>
 
@@ -38,34 +39,18 @@ export default {
       filesLoaded: 0,
       scenario: "",
       files: [],
-      days: 3,
+      days: 7,
       data: []
     };
   },
   created() {
+    ipcRenderer.send("chokidar-watch", this.$config);
+
     this.handleEventListeners();
   },
   computed: {
     $config() {
       return this.$store.state.configuration.data;
-    },
-    $filteredFiles() {
-      console.log(`Getting Records from Past ${this.days} days`);
-
-      this.loading = true;
-
-      this.data = [];
-
-      var files = this.files.filter(
-        x =>
-          x.scenario == this.scenario &&
-          Math.abs(x.date.diff(this.moment().startOf("day"), "days")) <
-            Number(this.days)
-      );
-
-      this.filesToLoad = files.length - 1;
-
-      return files;
     },
     $scenarios() {
       var scenarios = [];
@@ -80,17 +65,11 @@ export default {
     }
   },
   watch: {
-    $filteredFiles: {
+    scenario: {
       immediate: true,
       deep: true,
       handler() {
-        this.$filteredFiles.forEach(file => {
-          ipcRenderer.send("get-kovaak-file", {
-            path: this.$config.path,
-            name: file.file,
-            date: this.days == 1 ? file.time : file.date.format("YYYY-MM-DD")
-          });
-        });
+        this.getFilesForScenario();
       }
     },
     $config: {
@@ -102,27 +81,104 @@ export default {
     }
   },
   methods: {
-    handleEventListeners() {
-      ipcRenderer.on("got-kovaak-file", (event, data) => {
-        this.data.push({
-          date: data.date,
-          score: data[3]["Score"],
-          averageTimeToKill: data[3]["Avg TTK"],
-          horziontalSensitivity: data[3]["Horiz Sens"],
-          verticalSensitivity: data[3]["Vert Sens"],
-          sensitivityScale: data[3]["Sens Scale"],
-          accuracy: (data[2].Hits / data[2].Shots) * 100
+    getFilesForScenario() {
+      this.filesToLoad = 0;
+      this.filesLoaded = 0;
+      this.loading = true;
+      this.data = [];
+
+      var files = this.files.filter(
+        x =>
+          x.scenario == this.scenario &&
+          Math.abs(x.date.diff(this.moment().startOf("day"), "days")) <
+            Number(this.days)
+      );
+
+      this.filesToLoad = files.length - 1;
+
+      files.forEach(file => {
+        ipcRenderer.send("get-kovaak-file", {
+          path: this.$config.path,
+          name: file.path,
+          date: this.days == 1 ? file.time : file.date.format("YYYY-MM-DD")
         });
+      });
+    },
+    handleEventListeners() {
+      /* New KovaaK Statistic File */
+      ipcRenderer.on("chokidar-add", (event, data) => {
+        if (this.files.find(x => x.path == data.fileName) == null) {
+          this.files.push({
+            scenario: data.scenario,
+            date: this.moment(data.date, ["YYYY-MM-DD"]),
+            datetime: this.moment(`${data.date} ${data.time}`, [
+              "YYYY-MM-DD HH:mm:ss"
+            ]),
+            time: data.time,
+            path: data.fileName
+          });
+        }
+
+        if (this.scenario && this.scenario == data.scenario) {
+          console.log("getting file ");
+          ipcRenderer.send("get-kovaak-file", {
+            path: this.$config.path,
+            name: data.fileName,
+            date: this.days == 1 ? data.time : data.date
+          });
+        }
+      });
+      /* KovaaK Statistic File Removed */
+      ipcRenderer.on("chokidar-remove", (event, data) => {
+        var index = this.files.findIndex(x => x.path == data);
+
+        if (index != -1) {
+          this.files.splice(index, 1);
+        }
+
+         var dIndex = this.data.findIndex(x => x.name == data);
+
+        if (dIndex != -1) {
+          this.data.splice(dIndex, 1);
+        }
+      });
+
+      /* Initial Directory Scan Complete */
+      ipcRenderer.on("chokidar-ready", (event, data) => {
+        var scenarios = this.$scenarios;
+        if (scenarios && !this.scenario) {
+          this.scenario = scenarios[0];
+        }
+      });
+
+      ipcRenderer.on("got-kovaak-file", (event, data) => {
         console.log(
           `Loaded ${this.filesLoaded}/${this.filesToLoad} files for ${this.scenario}`
         );
+        console.log(data);
+        if (this.data.find(x => x.name == data.name) == null) {
+          this.data.push({
+            name: data.name,
+            scenario: data[3]["Scenario"],
+            date: data.date,
+            score: data[3]["Score"],
+            averageTimeToKill: data[3]["Avg TTK"],
+            horziontalSensitivity: data[3]["Horiz Sens"],
+            verticalSensitivity: data[3]["Vert Sens"],
+            sensitivityScale: data[3]["Sens Scale"],
+            accuracy: (data[2].Hits / data[2].Shots) * 100
+          });
+        } else {
+          console.log("already existsa");
+        }
+
         if (this.filesLoaded < this.filesToLoad) {
           this.filesLoaded++;
         } else {
           this.loading = false;
         }
       });
-      ipcRenderer.on("got-kovaak-data", (event, data) => {
+      /*     ipcRenderer.on("got-kovaak-data", (event, data) => {
         console.log(data[0]);
         this.files = data.map(data => ({
           scenario: data.scenario,
@@ -133,7 +189,7 @@ export default {
           time: data.time,
           file: data.fileName
         }));
-      });
+      }); */
     }
   }
 };
