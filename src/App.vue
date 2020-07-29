@@ -29,7 +29,7 @@ export default {
   name: "App",
   mounted() {
     ipcRenderer.send("load-config");
-
+    ipcRenderer.send("get-scenario-cache");
     this.handleEventListeners();
   },
   computed: {
@@ -50,6 +50,10 @@ export default {
       ipcRenderer.send("app:minimize");
     },
     handleEventListeners() {
+      ipcRenderer.on("got-scenario-cache", (event, scenarios) => {
+        this.$store.commit("setScenarios", scenarios);
+      });
+      
       ipcRenderer.on("loaded-config", (event, config) => {
         if (config) {
           this.$store.commit("setConfiguration", config);
@@ -78,7 +82,7 @@ export default {
 }
 
 .appbar-items {
-    -webkit-app-region: no-drag;
+  -webkit-app-region: no-drag;
 }
 html {
   overflow: scroll;

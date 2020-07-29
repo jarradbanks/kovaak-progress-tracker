@@ -6,20 +6,22 @@
       </v-col>
       <v-col cols="3"></v-col>
       <v-col cols="3">
-        <v-text-field
-          dense
-          outlined
-          type="number"
+        <v-select
           v-model="days"
-          :label="'Filter By Last ' + days + ' days'"
-        ></v-text-field>
+          outlined
+          dense
+          label="Filter By"
+          item-text="name"
+          item-value="value"
+          :items="[{name: 'Today', value: 1}, {name: '3 Days Ago', value: 3}, {name: '1 Week', value: 7}, {name: '2 Weeks', value: 14}, { name: '1 Month', value: 30}, { name: '3 Months', value: 90}]"
+        ></v-select>
       </v-col>
 
+      <v-col cols="12" class="py-0 my-0">Overall Accuracy: {{totalAccuracy.toFixed(2)}}%</v-col>
       <v-col cols="12" style="color: white !important;">
         <line-chart :data="!loading ? data : []" :days="Number(days)"></line-chart>
       </v-col>
     </v-row>
-    {{filesLoaded + 1}} / {{filesToLoad + 1}}
   </v-container>
 </template>
 
@@ -40,7 +42,8 @@ export default {
       scenario: "",
       files: [],
       days: 7,
-      data: []
+      data: [],
+      totalAccuracy: 0
     };
   },
   created() {
@@ -72,6 +75,14 @@ export default {
         this.getFilesForScenario();
       }
     },
+    days: {
+      immediate: true,
+      deep: true,
+      handler(newDays, oldDays) {
+        console.log(newDays, oldDays);
+        this.getFilesForScenario();
+      }
+    },
     $config: {
       immediate: true,
       deep: true,
@@ -84,25 +95,30 @@ export default {
     getFilesForScenario() {
       this.filesToLoad = 0;
       this.filesLoaded = 0;
-      this.loading = true;
       this.data = [];
+      this.loading = true;
 
       var files = this.files.filter(
         x =>
           x.scenario == this.scenario &&
           Math.abs(x.date.diff(this.moment().startOf("day"), "days")) <
-            Number(this.days)
+            this.days
       );
+      console.log(files);
+      if (files.length > 0) {
+        this.filesToLoad = files.length - 1;
 
-      this.filesToLoad = files.length - 1;
-
-      files.forEach(file => {
-        ipcRenderer.send("get-kovaak-file", {
-          path: this.$config.path,
-          name: file.path,
-          date: this.days == 1 ? file.time : file.date.format("YYYY-MM-DD")
+        files.forEach(file => {
+          ipcRenderer.send("get-kovaak-file", {
+            path: this.$config.path,
+            name: file.path,
+            date: this.days == 1 ? file.time : file.date.format("YYYY-MM-DD")
+          });
         });
-      });
+      } else {
+        console.log("No files");
+        this.loading = false;
+      }
     },
     handleEventListeners() {
       /* New KovaaK Statistic File */
@@ -136,7 +152,7 @@ export default {
           this.files.splice(index, 1);
         }
 
-         var dIndex = this.data.findIndex(x => x.name == data);
+        var dIndex = this.data.findIndex(x => x.name == data);
 
         if (dIndex != -1) {
           this.data.splice(dIndex, 1);
@@ -153,7 +169,9 @@ export default {
 
       ipcRenderer.on("got-kovaak-file", (event, data) => {
         console.log(
-          `Loaded ${this.filesLoaded}/${this.filesToLoad} files for ${this.scenario}`
+          `Loaded ${this.filesLoaded + 1}/${this.filesToLoad + 1} files for ${
+            this.scenario
+          }`
         );
         console.log(data);
         if (this.data.find(x => x.name == data.name) == null) {
@@ -168,28 +186,22 @@ export default {
             sensitivityScale: data[3]["Sens Scale"],
             accuracy: (data[2].Hits / data[2].Shots) * 100
           });
-        } else {
-          console.log("already existsa");
         }
 
         if (this.filesLoaded < this.filesToLoad) {
           this.filesLoaded++;
         } else {
           this.loading = false;
+
+          this.totalAccuracy =
+            ([...new Set([...this.data.map(x => x.accuracy)])].reduce(
+              (a, b) => a + b,
+              0
+            ) /
+              (100 * this.data.length)) *
+            100;
         }
       });
-      /*     ipcRenderer.on("got-kovaak-data", (event, data) => {
-        console.log(data[0]);
-        this.files = data.map(data => ({
-          scenario: data.scenario,
-          date: this.moment(data.date, ["YYYY-MM-DD"]),
-          datetime: this.moment(`${data.date} ${data.time}`, [
-            "YYYY-MM-DD HH:mm:ss"
-          ]),
-          time: data.time,
-          file: data.fileName
-        }));
-      }); */
     }
   }
 };

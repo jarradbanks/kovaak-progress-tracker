@@ -26,7 +26,7 @@ function createWindow() {
   // Create the browser window.
   win = new BrowserWindow({
     width: 1000,
-    height: 575,
+    height: 600,
     autoHideMenuBar: true,
     resizable: false,
     webPreferences: {
@@ -67,11 +67,34 @@ ipcMain.on('open-path-dialog', (event, arg) => {
   });
 })
 
+ipcMain.on('get-scenario-cache', (event, data) => {
 
+  var lineReader = require('readline').createInterface({
+    input: require('fs').createReadStream(path.join("G:\\Steam\\steamapps\\common\\FPSAimTrainer\\FPSAimTrainer\\Saved\\SaveGames", "SteamWorkshop.cache"))
+  });
+
+  var scenarios = [];
+  lineReader.on('line', function (line) {
+
+    var split = line.slice(40).split("|;");
+
+    if (split.length >= 1) {
+      if (split[0] && split[1]) {
+        scenarios.push({
+          name: split[0],
+          description: split[1]
+
+        });
+      }
+    }
+  });
+
+  lineReader.on('close', () => {
+    event.sender.send('got-scenario-cache', scenarios);
+  });
+});
 
 ipcMain.on('get-kovaak-file', (event, data) => {
-
-
 
   var lineReader = require('readline').createInterface({
     input: require('fs').createReadStream(path.join(data.path, data.name))
