@@ -67,7 +67,7 @@ ipcMain.on('open-path-dialog', (event, arg) => {
   });
 })
 
-ipcMain.on('get-scenario-cache', (event, data) => {
+/* ipcMain.on('get-scenario-cache', (event, data) => {
 
   var lineReader = require('readline').createInterface({
     input: require('fs').createReadStream(path.join("G:\\Steam\\steamapps\\common\\FPSAimTrainer\\FPSAimTrainer\\Saved\\SaveGames", "SteamWorkshop.cache"))
@@ -92,7 +92,7 @@ ipcMain.on('get-scenario-cache', (event, data) => {
   lineReader.on('close', () => {
     event.sender.send('got-scenario-cache', scenarios);
   });
-});
+}); */
 
 ipcMain.on('get-kovaak-file', (event, data) => {
 

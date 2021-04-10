@@ -7,17 +7,17 @@ export default {
   props: {
     data: {
       type: Array,
-      default: []
+      default: [],
     },
     days: {
       type: Number,
-      default: []
-    }
+      default: [],
+    },
   },
   name: "LineChart",
   data() {
     return {
-      filtered: []
+      filtered: [],
     };
   },
   watch: {
@@ -30,12 +30,10 @@ export default {
             averageScores = [],
             lowestScores = [];
 
-    
+          var dates = [...new Set([...this.data.map((x) => x.date)])];
 
-          var dates = [...new Set([...this.data.map(x => x.date)])];
-
-          dates.forEach(date => {
-            this.filtered = this.data.filter(x => x.date == date);
+          dates.forEach((date) => {
+            this.filtered = this.data.filter((x) => x.date == date);
 
             if (this.filtered.length > 0) {
               var average = 0;
@@ -47,7 +45,7 @@ export default {
                 average = this.filtered[0].score;
               }
 
-              var scores = this.filtered.map(x => Number(x.score));
+              var scores = this.filtered.map((x) => Number(x.score));
 
               var highest = Math.max(...scores);
 
@@ -66,30 +64,34 @@ export default {
               ? [
                   {
                     label: "Score",
-                    backgroundColor: ["rgba(250, 190, 88, 0.25)"],
+                    backgroundColor: ["rgba(0, 0, 0, 1)"],
+                    fill: false,
                     borderColor: ["rgba(245, 171, 53, 1)"],
-                    data: averageScores
-                  }
+                    data: averageScores,
+                  },
                 ]
               : [
                   {
                     label: "Highest Score",
-                    backgroundColor: ["rgba(250, 190, 88, 0.25)"],
+                    backgroundColor: ["rgba(0, 0, 0, 1)"],
                     borderColor: ["rgba(245, 171, 53, 1)"],
-                    data: highestScores
+                    fill: false,
+                    data: highestScores,
                   },
                   {
                     label: "Average Score",
-                    backgroundColor: ["rgba(30, 130, 76, 0.25)"],
+                    backgroundColor: ["rgba(0, 0, 0, 1)"],
                     borderColor: ["rgba(38, 166, 91, 1)"],
-                    data: averageScores
+                    fill: false,
+                    data: averageScores,
                   },
                   {
                     label: "Lowest Score",
-                    backgroundColor: ["rgba(246, 71, 71, 0.25)"],
+                    backgroundColor: ["rgba(0, 0, 0, 1)"],
                     borderColor: ["rgba(150, 40, 27, 1)"],
-                    data: lowestScores
-                  }
+                    fill: false,
+                    data: lowestScores,
+                  },
                 ];
 
           this.render(dates, datasets);
@@ -101,25 +103,28 @@ export default {
                 label: "Highest Score",
                 backgroundColor: ["rgba(250, 190, 88, 0.25)"],
                 borderColor: ["rgba(245, 171, 53, 1)"],
-                data: []
+                fill: false,
+                data: [],
               },
               {
                 label: "Average Score",
                 backgroundColor: ["rgba(30, 130, 76, 0.25)"],
                 borderColor: ["rgba(38, 166, 91, 1)"],
-                data: []
+                fill: false,
+                data: [],
               },
               {
                 label: "Lowest Score",
                 backgroundColor: ["rgba(246, 71, 71, 0.25)"],
                 borderColor: ["rgba(150, 40, 27, 1)"],
-                data: []
-              }
+
+                data: [],
+              },
             ]
           );
         }
-      }
-    }
+      },
+    },
   },
   methods: {
     render(labels, datasets) {
@@ -127,7 +132,7 @@ export default {
       this.renderChart(
         {
           labels: labels,
-          datasets: datasets
+          datasets: datasets,
         },
         {
           responsive: true,
@@ -136,15 +141,15 @@ export default {
             yAxes: [
               {
                 ticks: {
-                  beginAtZero: true
-                }
-              }
-            ]
-          }
+                  beginAtZero: true,
+                },
+              },
+            ],
+          },
         }
       );
-    }
-  }
+    },
+  },
 };
 </script>
 

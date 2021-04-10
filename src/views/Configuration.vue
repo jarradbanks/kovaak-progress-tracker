@@ -15,17 +15,34 @@
         </v-col>
 
         <v-col cols="12">
-          <v-switch v-model="$vuetify.theme.dark" :label="$vuetify.theme.dark ? 'Dark' : 'Light'"></v-switch>
+          <v-switch
+            v-model="$vuetify.theme.dark"
+            :label="$vuetify.theme.dark ? 'Dark' : 'Light'"
+          ></v-switch>
         </v-col>
       </v-row>
 
-      <v-card-actions style="position: absolute; width: 100%;  bottom: 0;">
+      <v-card-actions style="position: absolute; width: 100%; bottom: 0">
         <v-row dense>
           <v-col cols="6" v-if="$config">
-            <v-btn block outlined :disabled="path.length == 0" height="48" @click="cancel">Cancel</v-btn>
+            <v-btn
+              block
+              outlined
+              :disabled="path.length == 0"
+              height="48"
+              @click="cancel"
+              >Cancel</v-btn
+            >
           </v-col>
           <v-col :cols="$config ? 6 : 12">
-            <v-btn block outlined :disabled="path.length == 0" height="48" @click="save">Save</v-btn>
+            <v-btn
+              block
+              outlined
+              :disabled="path.length == 0"
+              height="48"
+              @click="save"
+              >Save</v-btn
+            >
           </v-col>
         </v-row>
       </v-card-actions>
@@ -39,7 +56,7 @@ const { ipcRenderer } = require("electron");
 export default {
   data() {
     return {
-      path: ""
+      path: "",
     };
   },
   created() {
@@ -52,12 +69,12 @@ export default {
   computed: {
     $config() {
       return this.$store.state.configuration.data;
-    }
+    },
   },
   watch: {
     $config() {
       this.path = this.$config.path;
-    }
+    },
   },
   methods: {
     handleEventListeners() {
@@ -71,7 +88,7 @@ export default {
         this.$store.commit("setConfiguration", config);
 
         this.$router.push({
-          path: "/dashboard"
+          path: "/dashboard",
         });
       });
     },
@@ -81,16 +98,16 @@ export default {
     save() {
       ipcRenderer.send("save-config", {
         theme: this.$vuetify.theme.dark ? true : false,
-        path: this.path
+        path: this.path,
       });
     },
     cancel() {
-      this.$vuetify.theme.darke = this.$config.theme;
+      this.$vuetify.theme.dark = this.f$config.theme;
       this.$router.push({
-        path: "/dashboard"
+        path: "/dashboard",
       });
-    }
-  }
+    },
+  },
 };
 </script>
 

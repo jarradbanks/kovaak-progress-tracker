@@ -29,7 +29,7 @@ export default {
   name: "App",
   mounted() {
     ipcRenderer.send("load-config");
-    ipcRenderer.send("get-scenario-cache");
+/*     ipcRenderer.send("get-scenario-cache"); */
     this.handleEventListeners();
   },
   computed: {
