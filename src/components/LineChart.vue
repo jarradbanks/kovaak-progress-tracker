@@ -1,6 +1,5 @@
 <script>
 import { Line } from "vue-chartjs";
-import { stat } from "fs";
 
 export default {
   extends: Line,
