@@ -1,10 +1,14 @@
 <template>
   <v-app>
     <v-app-bar color="transparent" class="appbar" flat app dense>
-      <v-toolbar-title class="pl-3">{{$route.name}}</v-toolbar-title>
+      <v-toolbar-title class="pl-3">{{ $route.name }}</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-items class="appbar-items">
-        <v-btn icon @click="$router.push('/')" v-if="$route.path != '/configuration'">
+        <v-btn
+          icon
+          @click="$router.push('/')"
+          v-if="$route.path != '/configuration'"
+        >
           <v-icon>settings</v-icon>
         </v-btn>
         <v-btn icon @click="minimize">
@@ -29,19 +33,21 @@ export default {
   name: "App",
   mounted() {
     ipcRenderer.send("load-config");
-/*     ipcRenderer.send("get-scenario-cache"); */
+    /* ipcRenderer.send("get-scenario-cache"); */
     this.handleEventListeners();
   },
   computed: {
     $config() {
       return this.$store.state.configuration.data;
-    }
+    },
   },
+  /*  
   watch: {
     $config() {
       console.log(this.$store.state.configuration.data);
-    }
-  },
+    },
+  }, 
+  */
   methods: {
     quit() {
       ipcRenderer.send("app:quit");
@@ -53,7 +59,7 @@ export default {
       ipcRenderer.on("got-scenario-cache", (event, scenarios) => {
         this.$store.commit("setScenarios", scenarios);
       });
-      
+
       ipcRenderer.on("loaded-config", (event, config) => {
         if (config) {
           this.$store.commit("setConfiguration", config);
@@ -61,18 +67,18 @@ export default {
           this.$vuetify.theme.dark = this.$config.theme;
 
           this.$router.push({
-            path: "/dashboard"
+            path: "/dashboard",
           });
         } else {
           if (this.$router.path != "/") {
             this.$router.push({
-              path: "/"
+              path: "/",
             });
           }
         }
       });
-    }
-  }
+    },
+  },
 };
 </script>
 

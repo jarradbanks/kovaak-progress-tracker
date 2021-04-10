@@ -19,14 +19,7 @@
           label="Filter By"
           item-text="name"
           item-value="value"
-          :items="[
-            { name: 'Today', value: 1 },
-            { name: '3 Days Ago', value: 3 },
-            { name: '1 Week', value: 7 },
-            { name: '2 Weeks', value: 14 },
-            { name: '1 Month', value: 30 },
-            { name: '3 Months', value: 90 },
-          ]"
+          :items="dateFilters"
         ></v-select>
       </v-col>
 
@@ -62,6 +55,15 @@ export default {
       days: 7,
       data: [],
       totalAccuracy: 0,
+      dateFilters: [
+        { name: "Today", value: 1 },
+        { name: "3 Days Ago", value: 3 },
+        { name: "1 Week", value: 7 },
+        { name: "2 Weeks", value: 14 },
+        { name: "1 Month", value: 30 },
+        { name: "3 Months", value: 90 },
+        { name: "None", value: -1 },
+      ],
     };
   },
   created() {
@@ -97,7 +99,6 @@ export default {
       immediate: true,
       deep: true,
       handler(newDays, oldDays) {
-        console.log(newDays, oldDays);
         this.getFilesForScenario();
       },
     },
@@ -116,13 +117,16 @@ export default {
       this.data = [];
       this.loading = true;
 
-      var files = this.files.filter(
-        (x) =>
-          x.scenario == this.scenario &&
-          Math.abs(x.date.diff(this.moment().startOf("day"), "days")) <
+      var files = this.files.filter((x) => x.scenario == this.scenario);
+
+      if (this.days != -1) {
+        files = files.filter(
+          (x) =>
+            Math.abs(x.date.diff(this.moment().startOf("day"), "days")) <
             this.days
-      );
-      console.log(files);
+        );
+      }
+
       if (files.length > 0) {
         this.filesToLoad = files.length - 1;
 
@@ -139,9 +143,21 @@ export default {
       }
     },
     handleEventListeners() {
-      /* New KovaaK Statistic File */
+      /**
+       * Add file to files[] cache when added to directory.
+       *
+       * @event Chokidar#remove
+       */
       ipcRenderer.on("chokidar-add", (event, data) => {
+        // not in files[] cache
         if (this.files.find((x) => x.path == data.fileName) == null) {
+          /*  
+            scenario: kovaak scenario name
+            date: kovaak completed date,
+            datetime: kovaak completed date and time,
+            time: kovaak completed time,
+            path: kovaak statistics file name
+          */
           this.files.push({
             scenario: data.scenario,
             date: this.moment(data.date, ["YYYY-MM-DD"]),
@@ -153,8 +169,12 @@ export default {
           });
         }
 
+        /* scenario exists and is the currently selected scenario */
         if (this.scenario && this.scenario == data.scenario) {
-          console.log("getting file ");
+          
+          /* 
+            path: configuration path to kovaak installation
+          */
           ipcRenderer.send("get-kovaak-file", {
             path: this.$config.path,
             name: data.fileName,
@@ -162,22 +182,25 @@ export default {
           });
         }
       });
-      /* KovaaK Statistic File Removed */
+
+      /**
+       * Remove file from files[] cache when removed from directory.
+       * @event Chokidar#remove
+       */
       ipcRenderer.on("chokidar-remove", (event, data) => {
-        var index = this.files.findIndex((x) => x.path == data);
+        var fileIndex = this.files.findIndex((file) => file.path == data);
 
-        if (index != -1) {
-          this.files.splice(index, 1);
-        }
+        if (fileIndex != -1) this.files.splice(fileIndex, 1);
 
-        var dIndex = this.data.findIndex((x) => x.name == data);
+        var dataIndex = this.data.findIndex((data) => data.name == data);
 
-        if (dIndex != -1) {
-          this.data.splice(dIndex, 1);
-        }
+        if (dataIndex != -1) this.data.splice(dataIndex, 1);
       });
 
-      /* Initial Directory Scan Complete */
+      /**
+       * Initial scan of directory (/stats) complete.
+       * @event Chokidar#ready
+       */
       ipcRenderer.on("chokidar-ready", (event, data) => {
         var scenarios = this.$scenarios;
         if (scenarios && !this.scenario) {
@@ -185,13 +208,18 @@ export default {
         }
       });
 
+ /**
+       * Initial scan of directory (/stats) complete.
+       * @event gotKovaakFile
+       */
       ipcRenderer.on("got-kovaak-file", (event, data) => {
+        /* 
         console.log(
           `Loaded ${this.filesLoaded + 1}/${this.filesToLoad + 1} files for ${
             this.scenario
           }`
-        );
-        console.log(data);
+        ); 
+        */
         if (this.data.find((x) => x.name == data.name) == null) {
           this.data.push({
             name: data.name,
@@ -224,5 +252,3 @@ export default {
   },
 };
 </script>
-
-<style scoped></style>

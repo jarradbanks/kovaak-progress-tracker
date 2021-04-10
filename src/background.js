@@ -132,7 +132,6 @@ ipcMain.on('get-kovaak-file', (event, data) => {
 
   lineReader.on('line', function (line) {
 
-
     if (line.includes("Kill #,Timestamp,Bot,Weapon,TTK,Shots,Hits,Accuracy,Damage Done,Damage Possible,Efficiency,Cheated")) {
       parse1 = true;
       return;
@@ -250,7 +249,7 @@ ipcMain.on('chokidar-watch', (event, config) => {
 
   watcher
     .on('add', path => {
-      /*   console.log(`Found: ${path}`); */
+        console.log(`Found: ${path}`);
 
       var object = {};
 
