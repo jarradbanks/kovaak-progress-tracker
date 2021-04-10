@@ -171,7 +171,6 @@ export default {
 
         /* scenario exists and is the currently selected scenario */
         if (this.scenario && this.scenario == data.scenario) {
-          
           /* 
             path: configuration path to kovaak installation
           */
@@ -208,7 +207,7 @@ export default {
         }
       });
 
- /**
+      /**
        * Initial scan of directory (/stats) complete.
        * @event gotKovaakFile
        */

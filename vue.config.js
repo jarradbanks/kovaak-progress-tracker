@@ -2,10 +2,10 @@ module.exports = {
   transpileDependencies: ["vuetify"],
   pluginOptions: {
     electronBuilder: {
-      nodeIntegration: true
-    }
+      nodeIntegration: true,
+    },
   },
-  chainWebpack: config => {
-    config.module.rules.delete('eslint');
-  }
+  chainWebpack: (config) => {
+    config.module.rules.delete("eslint");
+  },
 };

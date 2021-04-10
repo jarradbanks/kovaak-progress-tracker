@@ -1,5 +1,5 @@
 export default {
-    setConfiguration(state, payload) {
-        state.data = payload;
-    }
-}
+  setConfiguration(state, payload) {
+    state.data = payload;
+  },
+};
