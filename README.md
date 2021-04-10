@@ -1,20 +1,24 @@
-# kovaak-progress-project
+# Kovaak Progress
 
-this is a test change
+### Prerequisites
+Download [Node](https://nodejs.org/en/).
 
 ## Project setup
 ```
+npm install -g @vue/cli
+npm install -g vuetify
+npm install -g electron 
 npm install
 ```
 
 ### Compiles and hot-reloads for development
 ```
-npm run serve
+npm run electron:serve
 ```
 
 ### Compiles and minifies for production
 ```
-npm run build
+npm run electron:build
 ```
 
 ### Lints and fixes files
@@ -22,5 +26,4 @@ npm run build
 npm run lint
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+
