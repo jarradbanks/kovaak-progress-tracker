@@ -39,46 +39,61 @@ export default {
   computed: {
     $config() {
       return this.$store.state.configuration.data;
-    },
+    }
   },
-  /*  
-  watch: {
-    $config() {
-      console.log(this.$store.state.configuration.data);
-    },
-  }, 
-  */
   methods: {
+    /**
+     * Exit application
+     * @function Quit
+     */
     quit() {
       ipcRenderer.send("app:quit");
     },
+    /**
+     * Minimize application
+     * @function Minimize
+     */
     minimize() {
       ipcRenderer.send("app:minimize");
     },
+    /**
+     * Event listeners (for when a event is emitted)
+     * @function Minimize
+     */
     handleEventListeners() {
+      /**
+       *
+       * @event Scenarios#loaded
+       */
       ipcRenderer.on("got-scenario-cache", (event, scenarios) => {
         this.$store.commit("setScenarios", scenarios);
       });
 
+      /**
+       * Set configuration in Vuex once loaded from config.json
+       * @event Config#loaded
+       */
       ipcRenderer.on("loaded-config", (event, config) => {
         if (config) {
+          //setConfiguration in store/modules/configuration/mutations.js
           this.$store.commit("setConfiguration", config);
 
+          //set applications theme (light/dark) based on user settings
           this.$vuetify.theme.dark = this.$config.theme;
 
           this.$router.push({
-            path: "/dashboard",
+            path: "/dashboard"
           });
         } else {
           if (this.$router.path != "/") {
             this.$router.push({
-              path: "/",
+              path: "/"
             });
           }
         }
       });
-    },
-  },
+    }
+  }
 };
 </script>
 

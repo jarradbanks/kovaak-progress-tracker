@@ -6,24 +6,24 @@ Vue.use(VueRouter);
 const routes = [
   {
     path: "/",
-    redirect: "/configuration",
+    redirect: "/configuration"
   },
   {
     path: "/configuration",
     name: "Configuration",
-    component: () => import("../views/Configuration.vue"),
+    component: () => import("../views/Configuration.vue")
   },
   {
     path: "/dashboard",
     name: "Dashboard",
-    component: () => import("../views/Dashboard.vue"),
-  },
+    component: () => import("../views/Dashboard.vue")
+  }
 ];
 
 const router = new VueRouter({
   mode: "history",
   base: process.env.BASE_URL,
-  routes,
+  routes
 });
 
 export default router;

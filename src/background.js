@@ -6,15 +6,14 @@ import {
   BrowserWindow,
   ipcMain,
   dialog,
-  remote,
+  nativeImage,
 } from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 import fs from "fs";
-import path, { parse } from "path";
+import path from "path";
 var chokidar = require("chokidar");
-const readline = require("readline");
 const isDevelopment = process.env.NODE_ENV !== "production";
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -39,6 +38,7 @@ function createWindow() {
       nodeIntegration: process.env.ELECTRON_NODE_INTEGRATION,
     },
     frame: false,
+    icon: nativeImage.createFromPath(__dirname + "/assets/icons/icon.ico"),
   });
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
@@ -142,6 +142,8 @@ ipcMain.on("get-kovaak-file", (event, data) => {
     };
 
   lineReader.on("line", function(line) {
+    var split = line.split(",");
+
     if (
       line.includes(
         "Kill #,Timestamp,Bot,Weapon,TTK,Shots,Hits,Accuracy,Damage Done,Damage Possible,Efficiency,Cheated"
@@ -159,8 +161,6 @@ ipcMain.on("get-kovaak-file", (event, data) => {
       return;
     }
     if (parse1) {
-      var split = line.split(",");
-
       parse1Arr.push({
         "Kill #": split[0],
         Timestamp: split[1],
@@ -176,7 +176,6 @@ ipcMain.on("get-kovaak-file", (event, data) => {
         Cheated: split[11],
       });
     } else if (parse2) {
-      var split = line.split(",");
       parse2Obj = {
         Weapon: split[0],
         Shots: split[1],
@@ -197,10 +196,8 @@ ipcMain.on("get-kovaak-file", (event, data) => {
 
       parse2 = false;
       parse3 = true;
-    } else {
+    } else if (parse3) {
       if (line.includes(",")) {
-        var split = line.split(",");
-
         if (split.length == 2) {
           parse3Obj[split[0].replace(":", "")] = split[1];
         }
@@ -300,9 +297,6 @@ ipcMain.on("chokidar-watch", (event, config) => {
 /// Save configuration
 ///
 ipcMain.on("save-config", (event, config) => {
-  //get app data path
-  var appData = app.getPath("userData");
-
   //save config
   fs.writeFileSync(
     path.join(app.getPath("userData"), "config.json"),
@@ -316,7 +310,7 @@ ipcMain.on("save-config", (event, config) => {
 ///
 /// Load configuration
 ///
-ipcMain.on("load-config", (event, config) => {
+ipcMain.on("load-config", (event) => {
   console.log("[Configuration] Loading.");
   //get app data path
   var appData = app.getPath("userData");

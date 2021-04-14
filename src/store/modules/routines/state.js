@@ -1,3 +1,3 @@
 export default {
-  scenarios: null,
+  scenarios: null
 };

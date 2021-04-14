@@ -56,7 +56,7 @@ const { ipcRenderer } = require("electron");
 export default {
   data() {
     return {
-      path: "",
+      path: ""
     };
   },
   created() {
@@ -69,12 +69,12 @@ export default {
   computed: {
     $config() {
       return this.$store.state.configuration.data;
-    },
+    }
   },
   watch: {
     $config() {
       this.path = this.$config.path;
-    },
+    }
   },
   methods: {
     handleEventListeners() {
@@ -88,7 +88,7 @@ export default {
         this.$store.commit("setConfiguration", config);
 
         this.$router.push({
-          path: "/dashboard",
+          path: "/dashboard"
         });
       });
     },
@@ -98,16 +98,16 @@ export default {
     save() {
       ipcRenderer.send("save-config", {
         theme: this.$vuetify.theme.dark ? true : false,
-        path: this.path,
+        path: this.path
       });
     },
     cancel() {
       this.$vuetify.theme.dark = this.f$config.theme;
       this.$router.push({
-        path: "/dashboard",
+        path: "/dashboard"
       });
-    },
-  },
+    }
+  }
 };
 </script>
 
