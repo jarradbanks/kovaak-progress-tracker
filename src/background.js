@@ -75,32 +75,34 @@ ipcMain.on("open-path-dialog", (event, arg) => {
     });
 });
 
-/* ipcMain.on('get-scenario-cache', (event, data) => {
-
-  var lineReader = require('readline').createInterface({
-    input: require('fs').createReadStream(path.join("G:\\Steam\\steamapps\\common\\FPSAimTrainer\\FPSAimTrainer\\Saved\\SaveGames", "SteamWorkshop.cache"))
+ipcMain.on("get-scenario-cache", (event, data) => {
+  var lineReader = require("readline").createInterface({
+    input: require("fs").createReadStream(
+      path.join(
+        "G:\\Steam\\steamapps\\common\\FPSAimTrainer\\FPSAimTrainer\\Saved\\SaveGames",
+        "SteamWorkshop.cache"
+      )
+    ),
   });
 
   var scenarios = [];
-  lineReader.on('line', function (line) {
-
+  lineReader.on("line", function(line) {
     var split = line.slice(40).split("|;");
 
     if (split.length >= 1) {
       if (split[0] && split[1]) {
         scenarios.push({
           name: split[0],
-          description: split[1]
-
+          description: split[1],
         });
       }
     }
   });
 
-  lineReader.on('close', () => {
-    event.sender.send('got-scenario-cache', scenarios);
+  lineReader.on("close", () => {
+    event.sender.send("got-scenario-cache", scenarios);
   });
-}); */
+});
 
 ipcMain.on("get-kovaak-file", (event, data) => {
   var lineReader = require("readline").createInterface({
@@ -260,7 +262,7 @@ ipcMain.on("chokidar-watch", (event, config) => {
 
   watcher
     .on("add", (path) => {
-      console.log(`Found: ${path}`);
+      /* console.log(`Found: ${path}`); */
 
       var object = {};
 

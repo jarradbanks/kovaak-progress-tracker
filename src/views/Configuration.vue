@@ -102,9 +102,9 @@ export default {
       });
     },
     cancel() {
-      this.$vuetify.theme.dark = this.f$config.theme;
+      this.$vuetify.theme.dark = this.$config.theme;
       this.$router.push({
-        path: "/dashboard"
+        path: "/statistics"
       });
     }
   }

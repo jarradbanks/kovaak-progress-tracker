@@ -14,9 +14,14 @@ const routes = [
     component: () => import("../views/Configuration.vue")
   },
   {
-    path: "/dashboard",
-    name: "Dashboard",
+    path: "/statistics",
+    name: "Statistics",
     component: () => import("../views/Dashboard.vue")
+  },
+  {
+    path: "/routines",
+    name: "Routines",
+    component: () => import("../views/Routines.vue")
   }
 ];
 

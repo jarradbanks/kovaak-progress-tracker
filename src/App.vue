@@ -1,9 +1,17 @@
 <template>
   <v-app>
-    <v-app-bar color="transparent" class="appbar" flat app dense>
-      <v-toolbar-title class="pl-3">{{ $route.name }}</v-toolbar-title>
-      <v-spacer></v-spacer>
-      <v-toolbar-items class="appbar-items">
+    <v-row no-gutters style="max-height: 48px;" class="appbar">
+      <v-col cols="8">
+        <v-tabs style="background: transparent;">
+          <v-tab @click="$router.push('/statistics')" class="appbar-items"
+            >Statistics</v-tab
+          >
+          <v-tab @click="$router.push('/routines')" class="appbar-items"
+            >Routines</v-tab
+          >
+        </v-tabs>
+      </v-col>
+      <v-col cols="4" class="text-right py-1 pr-1 appbar-items">
         <v-btn
           icon
           @click="$router.push('/')"
@@ -17,8 +25,8 @@
         <v-btn icon @click="quit">
           <v-icon>mdi-close</v-icon>
         </v-btn>
-      </v-toolbar-items>
-    </v-app-bar>
+      </v-col>
+    </v-row>
 
     <v-main>
       <router-view :key="$route.fullPath"></router-view>
@@ -33,13 +41,13 @@ export default {
   name: "App",
   mounted() {
     ipcRenderer.send("load-config");
-    /* ipcRenderer.send("get-scenario-cache"); */
+    ipcRenderer.send("get-scenario-cache"); 
     this.handleEventListeners();
   },
   computed: {
     $config() {
       return this.$store.state.configuration.data;
-    }
+    },
   },
   methods: {
     /**
@@ -82,20 +90,26 @@ export default {
           this.$vuetify.theme.dark = this.$config.theme;
 
           this.$router.push({
-            path: "/dashboard"
+            path: "/statistics",
           });
         } else {
           if (this.$router.path != "/") {
             this.$router.push({
-              path: "/"
+              path: "/",
             });
           }
         }
       });
-    }
-  }
+    },
+  },
 };
 </script>
+
+<style scoped>
+>>> .theme--dark.v-tabs > .v-tabs-bar {
+  background-color: transparent !important;
+}
+</style>
 
 <style>
 .appbar {
@@ -109,16 +123,39 @@ html {
   overflow: scroll;
   overflow-x: hidden;
 }
-::-webkit-scrollbar {
-  width: 0px; /* Remove scrollbar space */
-  background: transparent; /* Optional: just make scrollbar invisible */
+
+.theme--dark.v-application > ::-webkit-scrollbar-track {
+  background: #202020;
 }
-/* Optional: show position indicator in red */
+
+.theme--light.v-application > ::-webkit-scrollbar-track {
+  background: #fafafa;
+}
+::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 0px rgba(0, 0, 0, 0.3);
+}
+::-webkit-scrollbar {
+  width: 12px;
+  background-color: var(v--background-base);
+}
+
+.theme--dark.v-application > ::-webkit-scrollbar-thumb {
+  background: #101010;
+}
+
+.theme--light.v-application > ::-webkit-scrollbar-thumb {
+  background: #eeeeee;
+}
+
 ::-webkit-scrollbar-thumb {
-  background: #ff0000;
+  border-radius: 10px;
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
 }
 .v-toolbar__content {
   padding: 0px !important;
   height: 48px;
+}
+.capitalize {
+  text-transform: capitalize;
 }
 </style>
