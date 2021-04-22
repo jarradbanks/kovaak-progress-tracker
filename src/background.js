@@ -63,7 +63,57 @@ ipcMain.on("app:quit", () => {
 ipcMain.on("app:minimize", () => {
   win.minimize();
 });
-ipcMain.on("open-path-dialog", (event, arg) => {
+
+// Quit when all windows are closed.
+app.on("window-all-closed", () => {
+  // On macOS it is common for applications and their menu bar
+  // to stay active until the user quits explicitly with Cmd + Q
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
+});
+
+app.on("activate", () => {
+  // On macOS it's common to re-create a window in the app when the
+  // dock icon is clicked and there are no other windows open.
+  if (win === null) {
+    createWindow();
+  }
+});
+
+// This method will be called when Electron has finished
+// initialization and is ready to create browser windows.
+// Some APIs can only be used after this event occurs.
+app.on("ready", async () => {
+  if (isDevelopment && !process.env.IS_TEST) {
+    // Install Vue Devtools
+    try {
+      await installExtension(VUEJS_DEVTOOLS);
+    } catch (e) {
+      console.error("Vue Devtools failed to install:", e.toString());
+    }
+  }
+  createWindow();
+});
+
+// Exit cleanly on request from parent process in development mode.
+if (isDevelopment) {
+  if (process.platform === "win32") {
+    process.on("message", (data) => {
+      if (data === "graceful-exit") {
+        app.quit();
+      }
+    });
+  } else {
+    process.on("SIGTERM", () => {
+      app.quit();
+    });
+  }
+}
+
+/* Custom Event Listeners */
+
+ipcMain.on("openPathDialog", (event, arg) => {
   dialog
     .showOpenDialog({
       properties: ["openDirectory"],
@@ -75,10 +125,14 @@ ipcMain.on("open-path-dialog", (event, arg) => {
     });
 });
 
-/* ipcMain.on('get-scenario-cache', (event, data) => {
-
-  var lineReader = require('readline').createInterface({
-    input: require('fs').createReadStream(path.join("G:\\Steam\\steamapps\\common\\FPSAimTrainer\\FPSAimTrainer\\Saved\\SaveGames", "SteamWorkshop.cache"))
+ipcMain.on("getScenarios", (event, data) => {
+  var lineReader = require("readline").createInterface({
+    input: require("fs").createReadStream(
+      path.join(
+        "G:\\Steam\\steamapps\\common\\FPSAimTrainer\\FPSAimTrainer\\Saved\\SaveGames",
+        "SteamWorkshop.cache"
+      )
+    ),
   });
 
   var scenarios = [];
@@ -97,12 +151,12 @@ ipcMain.on("open-path-dialog", (event, arg) => {
     }
   });
 
-  lineReader.on('close', () => {
-    event.sender.send('got-scenario-cache', scenarios);
+  lineReader.on("close", () => {
+    event.sender.send("gotScenarios", scenarios);
   });
 }); */
 
-ipcMain.on("get-kovaak-file", (event, data) => {
+ipcMain.on("getKovaakFile", (event, data) => {
   var lineReader = require("readline").createInterface({
     input: require("fs").createReadStream(path.join(data.path, data.name)),
   });
@@ -206,7 +260,7 @@ ipcMain.on("get-kovaak-file", (event, data) => {
   });
 
   lineReader.on("close", () => {
-    event.sender.send("got-kovaak-file", {
+    event.sender.send("gotKovaakFile", {
       name: data.name,
       date: data.date,
       1: parse1Arr,
@@ -216,46 +270,44 @@ ipcMain.on("get-kovaak-file", (event, data) => {
   });
 });
 
-ipcMain.on("get-kovaak-data", (event, p) => {
-  fs.readdir(p, function(err, files) {
-    //handling error
-    if (err) {
-      return console.log("Unable to scan directory: " + err);
+ipcMain.on("getKovaakData", (event, path) => {
+  fs.readdir(path, (error, files) => {
+    if (error) {
+      return console.log(error);
     }
 
-    var d = [];
-    files.forEach((file) => {
-      var data = file.split(" - Challenge - ").map(
+    var data = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      var scenario = file.split(" - Challenge - ").map(
         (stat) =>
           (stat = stat
             .trim()
             .replace(" Stats", "")
             .replace(".csv", ""))
-      );
+      ); 
+      
+      if (scenario.length == 2) {
+        var dateTime = scenario[1].split("-");
 
-      if (data.length == 2) {
-        var datetime = data[1].split("-");
-
-        if (datetime.length == 2) {
-          d.push({
-            scenario: data[0],
-            date: datetime[0].split(".").join("-"),
-            time: datetime[1].split(".").join(":"),
+        if (dateTime.length == 2) {
+          data.push({
+            scenario: scenario[0],
+            date: dateTime[0].split(".").join("-"),
+            time: dateTime[1].split(".").join(":"),
             fileName: file,
           });
-        } else {
-          return;
         }
-      } else {
-        return;
       }
-    });
+    }
 
-    event.sender.send("got-kovaak-data", d);
+    event.sender.send("gotKovaakData", data);
   });
 });
 
-ipcMain.on("chokidar-watch", (event, config) => {
+ipcMain.on("chokidarWatch", (event, config) => {
   const watcher = chokidar.watch(".", { persistent: true, cwd: config.path });
 
   watcher
@@ -284,19 +336,19 @@ ipcMain.on("chokidar-watch", (event, config) => {
         }
       }
 
-      event.sender.send("chokidar-add", object);
+      event.sender.send("chokidarAdd", object);
     })
     .on("unlink", (path) => {
-      event.sender.send("chokidar-remove", path);
+      event.sender.send("chokidarRemove", path);
     })
     .on("ready", () => {
-      event.sender.send("chokidar-ready");
+      event.sender.send("chokidarReady");
     });
 });
 ///
 /// Save configuration
 ///
-ipcMain.on("save-config", (event, config) => {
+ipcMain.on("saveConfig", (event, config) => {
   //save config
   fs.writeFileSync(
     path.join(app.getPath("userData"), "config.json"),
@@ -304,13 +356,13 @@ ipcMain.on("save-config", (event, config) => {
   );
 
   //return config
-  event.reply("saved-config", config);
+  event.reply("savedConfig", config);
 });
 
 ///
 /// Load configuration
 ///
-ipcMain.on("load-config", (event) => {
+ipcMain.on("loadConfig", (event) => {
   console.log("[Configuration] Loading.");
   //get app data path
   var appData = app.getPath("userData");
@@ -328,56 +380,9 @@ ipcMain.on("load-config", (event) => {
       console.log("[Configuration] Data: " + data.toString());
 
       //return config
-      event.reply("loaded-config", JSON.parse(data.toString()));
+      event.reply("loadedConfig", JSON.parse(data.toString()));
     });
   } else {
-    event.reply("loaded-config", null);
+    event.reply("loadedConfig", null);
   }
 });
-
-// Quit when all windows are closed.
-app.on("window-all-closed", () => {
-  // On macOS it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
-});
-
-app.on("activate", () => {
-  // On macOS it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (win === null) {
-    createWindow();
-  }
-});
-
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on("ready", async () => {
-  if (isDevelopment && !process.env.IS_TEST) {
-    // Install Vue Devtools
-    try {
-      await installExtension(VUEJS_DEVTOOLS);
-    } catch (e) {
-      console.error("Vue Devtools failed to install:", e.toString());
-    }
-  }
-  createWindow();
-});
-
-// Exit cleanly on request from parent process in development mode.
-if (isDevelopment) {
-  if (process.platform === "win32") {
-    process.on("message", (data) => {
-      if (data === "graceful-exit") {
-        app.quit();
-      }
-    });
-  } else {
-    process.on("SIGTERM", () => {
-      app.quit();
-    });
-  }
-}

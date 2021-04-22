@@ -84,7 +84,7 @@ export default {
       });
 
       //handle config being saved
-      ipcRenderer.on("saved-config", (event, config) => {
+      ipcRenderer.on("savedConfig", (event, config) => {
         this.$store.commit("setConfiguration", config);
 
         this.$router.push({
@@ -93,10 +93,10 @@ export default {
       });
     },
     openFileDialog() {
-      ipcRenderer.send("open-path-dialog");
+      ipcRenderer.send("openPathDialog");
     },
     save() {
-      ipcRenderer.send("save-config", {
+      ipcRenderer.send("saveConfig", {
         theme: this.$vuetify.theme.dark ? true : false,
         path: this.path
       });
