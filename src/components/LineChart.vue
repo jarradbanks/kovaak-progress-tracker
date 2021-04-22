@@ -6,17 +6,17 @@ export default {
   props: {
     data: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     days: {
       type: Number,
-      default: () => null
-    }
+      default: () => null,
+    },
   },
   name: "LineChart",
   data() {
     return {
-      filtered: []
+      filtered: [],
     };
   },
   watch: {
@@ -29,34 +29,32 @@ export default {
             averageScores = [],
             lowestScores = [];
 
-          var dates = [...new Set([...this.data.map(x => x.date)])];
+          var dates = [...new Set([...this.data.map((x) => x.date)])];
 
-          dates.forEach(date => {
-            this.filtered = this.data.filter(x => x.date == date);
+          for (let i = 0; i < dates.length; i++) {
+            const date = dates[i];
 
-            if (this.filtered.length > 0) {
-              var average = 0;
-              if (this.filtered.length > 3) {
-                average =
-                  this.filtered.reduce((a, b) => a + Number(b.score), 0) /
-                  this.filtered.length;
-              } else {
-                average = this.filtered[0].score;
-              }
+            this.filtered = this.data.filter((x) => x.date == date);
 
-              var scores = this.filtered.map(x => Number(x.score));
+            var average = 0;
 
-              var highest = Math.max(...scores);
-
-              var lowest = Math.min(...scores);
-
-              highestScores.push(highest);
-
-              averageScores.push(average);
-
-              lowestScores.push(lowest);
+            if (this.filtered.length > 3) {
+              average =
+                this.filtered.reduce((a, b) => a + Number(b.score), 0) /
+                this.filtered.length;
+            } else {
+              average = this.filtered[0].score;
             }
-          });
+
+            var scores = this.filtered.map((x) => Number(x.score));
+
+            var highest = Math.max(...scores);
+            var lowest = Math.min(...scores);
+
+            highestScores.push(highest);
+            averageScores.push(average);
+            lowestScores.push(lowest);
+          }
 
           var datasets =
             this.days == 1
@@ -66,8 +64,8 @@ export default {
                     backgroundColor: ["rgba(0, 0, 0, 1)"],
                     fill: false,
                     borderColor: ["rgba(245, 171, 53, 1)"],
-                    data: averageScores
-                  }
+                    data: averageScores,
+                  },
                 ]
               : [
                   {
@@ -75,22 +73,22 @@ export default {
                     backgroundColor: ["rgba(0, 0, 0, 1)"],
                     borderColor: ["rgba(245, 171, 53, 1)"],
                     fill: false,
-                    data: highestScores
+                    data: highestScores,
                   },
                   {
                     label: "Average Score",
                     backgroundColor: ["rgba(0, 0, 0, 1)"],
                     borderColor: ["rgba(38, 166, 91, 1)"],
                     fill: false,
-                    data: averageScores
+                    data: averageScores,
                   },
                   {
                     label: "Lowest Score",
                     backgroundColor: ["rgba(0, 0, 0, 1)"],
                     borderColor: ["rgba(150, 40, 27, 1)"],
                     fill: false,
-                    data: lowestScores
-                  }
+                    data: lowestScores,
+                  },
                 ];
 
           this.render(dates, datasets);
@@ -103,34 +101,34 @@ export default {
                 backgroundColor: ["rgba(250, 190, 88, 0.25)"],
                 borderColor: ["rgba(245, 171, 53, 1)"],
                 fill: false,
-                data: []
+                data: [],
               },
               {
                 label: "Average Score",
                 backgroundColor: ["rgba(30, 130, 76, 0.25)"],
                 borderColor: ["rgba(38, 166, 91, 1)"],
                 fill: false,
-                data: []
+                data: [],
               },
               {
                 label: "Lowest Score",
                 backgroundColor: ["rgba(246, 71, 71, 0.25)"],
                 borderColor: ["rgba(150, 40, 27, 1)"],
 
-                data: []
-              }
+                data: [],
+              },
             ]
           );
         }
-      }
-    }
+      },
+    },
   },
   methods: {
     render(labels, datasets) {
       this.renderChart(
         {
           labels: labels,
-          datasets: datasets
+          datasets: datasets,
         },
         {
           responsive: true,
@@ -139,15 +137,15 @@ export default {
             yAxes: [
               {
                 ticks: {
-                  beginAtZero: true
-                }
-              }
-            ]
-          }
+                  beginAtZero: true,
+                },
+              },
+            ],
+          },
         }
       );
-    }
-  }
+    },
+  },
 };
 </script>
 

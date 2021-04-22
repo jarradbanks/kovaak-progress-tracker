@@ -40,8 +40,8 @@ const { ipcRenderer } = require("electron");
 export default {
   name: "App",
   mounted() {
-    ipcRenderer.send("load-config");
-    ipcRenderer.send("get-scenario-cache"); 
+    ipcRenderer.send("loadConfig");
+    ipcRenderer.send("getScenarios"); 
     this.handleEventListeners();
   },
   computed: {
@@ -73,7 +73,7 @@ export default {
        *
        * @event Scenarios#loaded
        */
-      ipcRenderer.on("got-scenario-cache", (event, scenarios) => {
+      ipcRenderer.on("gotScenarios", (event, scenarios) => {
         this.$store.commit("setScenarios", scenarios);
       });
 
@@ -81,7 +81,7 @@ export default {
        * Set configuration in Vuex once loaded from config.json
        * @event Config#loaded
        */
-      ipcRenderer.on("loaded-config", (event, config) => {
+      ipcRenderer.on("loadedConfig", (event, config) => {
         if (config) {
           //setConfiguration in store/modules/configuration/mutations.js
           this.$store.commit("setConfiguration", config);
