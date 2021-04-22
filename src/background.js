@@ -154,7 +154,7 @@ ipcMain.on("getScenarios", (event, data) => {
   lineReader.on("close", () => {
     event.sender.send("gotScenarios", scenarios);
   });
-}); */
+});
 
 ipcMain.on("getKovaakFile", (event, data) => {
   var lineReader = require("readline").createInterface({
