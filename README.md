@@ -1,4 +1,10 @@
-# Kovaak Progress
+# Kovaak 2.0 Progress Tracker
+
+Currently not being worked on.
+
+This project was intented to show you statistics in real time per map and had planned to add features to allow you to create 'Playlists' to manage your routines.
+
+Kovaaks has a feature in-game to do this, which I was unaware of until now and I also do not currently aim train.
 
 ### Prerequisites
 
